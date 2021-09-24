@@ -59,11 +59,7 @@ service.interceptors.response.use(
           break
         // 其他错误，直接抛出错误提示
         default:
-          Message({
-            message: error.response,
-            type: 'error',
-            duration: 5 * 1000
-          })
+          break
       }
     }
     return Promise.reject(error)

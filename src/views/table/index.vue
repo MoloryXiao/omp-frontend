@@ -3,7 +3,7 @@
     <div class="filter-container">
       <!-- <el-date-picker v-model="listQuery.year" type="year" placeholder="选择年"></el-date-picker> -->
       {{ listQuery.month }}月-月计划视图：<br><br>
-      <el-date-picker v-model="datePickerTime" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" :change="updateModelYearMonth('ListQuery')" />
+      <el-date-picker v-model="datePickerTime" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" :change="updateModelYearMonth('ListQuery')" />
       <el-select v-model="listQuery.task_type" placeholder="任务类型" clearable style="width: 130px; margin-right: 12px;" class="filter-item">
         <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>
@@ -71,6 +71,41 @@
 
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" :page-sizes="[5,10,20,50,100]" style="float:right;" @pagination="fetchData" />
 
+    <!-- 新增/修改 弹窗 -->
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 400px; margin-left:50px;">
+        <el-form-item label="月份:" prop="month">
+          <el-date-picker v-model="dialogMonthPicker" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px;" :change="updateModelYearMonth('Dialog')" />
+        </el-form-item>
+        <el-form-item label="任务名称:" prop="task_name">
+          <el-input v-model="temp.task_name" placeholder="任务项名称" />
+        </el-form-item>
+        <el-form-item label="任务类型:" prop="task_type">
+          <el-select v-model="temp.task_type" class="filter-item" placeholder="请选择">
+            <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="目标次数:" prop="target_times">
+          <el-input v-model="temp.target_times" placeholder="目标完成次数" />
+        </el-form-item>
+        <el-form-item label="当前次数:" prop="completed_times">
+          <el-input v-model="temp.completed_times" placeholder="当前已完成次数" />
+        </el-form-item>
+        <el-form-item label="状态:" prop="task_type">
+          <el-select v-model="temp.status" class="filter-item" placeholder="请选择">
+            <el-option v-for="item in statusTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
+          确认
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -157,7 +192,7 @@ export default {
         create: '创建月目标'
       },
       rules: {
-        dialogMonthPicker: [{ required: true, message: '月份必填', trigger: 'change' }],
+        month: [{ required: true, message: '月份必填', trigger: 'change' }],
         task_name: [{ required: true, message: '任务名称必填', trigger: 'blur' }],
         task_type: [{ required: true, message: '任务类型必填', trigger: 'change' }],
         target_times: [{ required: true, message: '目标次数必填', trigger: 'blur' }],
