@@ -55,6 +55,12 @@ export const constantRoutes = [
         meta: { title: '周计划目标', icon: 'el-icon-postcard' }
       },
       {
+        path: 'time-diary',
+        name: 'TimeDiary',
+        component: () => import('@/views/diary/index'),
+        meta: { title: '时间日记', icon: 'el-icon-notebook-2' }
+      },
+      {
         path: 'prize-list',
         name: 'PrizeList',
         component: () => import('@/views/tree/index'),
