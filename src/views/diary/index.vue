@@ -21,36 +21,50 @@
       <el-table-column prop="exercise_time" label="今日健身时长" align="center" min-width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.exercise_time === 0 ? '0min' : scope.row.exercise_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.exercise_time &lt; 60 ? '' : numFilter(scope.row.exercise_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="read_time" label="今日阅读时长" align="center" min-width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.read_time === 0 ? '0min' : scope.row.read_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.read_time &lt; 60 ? '' : numFilter(scope.row.read_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="study_time" label="今日学习时长" align="center" min-width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.study_time === 0 ? '0min' : scope.row.study_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.study_time &lt; 60 ? '' : numFilter(scope.row.study_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="work_time" label="今日工作时长" align="center" min-width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.work_time === 0 ? '0min' : scope.row.work_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.work_time &lt; 60 ? '' : numFilter(scope.row.work_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="plan_time" label="总结回顾时长" align="center" min-width="150">
         <template slot-scope="scope">
           <span>{{ scope.row.plan_time === 0 ? '0min' : scope.row.plan_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.plan_time &lt; 60 ? '' : numFilter(scope.row.plan_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="none_time" label="无" align="center" min-width="150">
+      <el-table-column prop="recreation_time" label="今日娱乐时长" align="center" min-width="150">
         <template slot-scope="scope">
-          <span>{{ scope.row.none_time === 0 ? '0min' : scope.row.none_time + 'mins' }}</span>
+          <span>{{ scope.row.recreation_time === 0 ? '0min' : scope.row.recreation_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.recreation_time &lt; 60 ? '' : numFilter(scope.row.recreation_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="else_time" label="未知分类" align="center" min-width="150">
+      <el-table-column prop="daily_time" label="其他日常花销" align="center" min-width="150">
         <template slot-scope="scope">
-          <span>{{ scope.row.else_time === 0 ? '0min' : scope.row.else_time + 'mins' }}</span>
+          <span>{{ scope.row.daily_time === 0 ? '0min' : scope.row.daily_time + 'mins' }}</span>
+          <br>
+          <span>{{ scope.row.daily_time &lt; 60 ? '' : numFilter(scope.row.daily_time/60) + 'hours' }}</span>
         </template>
       </el-table-column>
     </el-table>
@@ -102,8 +116,8 @@ export default {
         study_time: 0,
         work_time: 0,
         plan_time: 0,
-        none_time: 0,
-        else_time: 0
+        recreation_time: 0,
+        daily_time: 0
       }]
     }
   },
@@ -128,8 +142,8 @@ export default {
         this.time_total_table[0].study_time = rsp.data['学习']
         this.time_total_table[0].work_time = rsp.data['工作']
         this.time_total_table[0].plan_time = rsp.data['规划']
-        this.time_total_table[0].none_time = rsp.data['无']
-        this.time_total_table[0].else_time = rsp.data['未知分类']
+        this.time_total_table[0].recreation_time = rsp.data['娱乐']
+        this.time_total_table[0].daily_time = rsp.data['日常']
         this.time_total_show = true
       }).catch((err) => {
         this.$notify({
@@ -139,6 +153,10 @@ export default {
           duration: 2000
         })
       })
+    },
+    numFilter(value) {
+      const realVal = parseFloat(value).toFixed(2)
+      return realVal
     }
   }
 }
