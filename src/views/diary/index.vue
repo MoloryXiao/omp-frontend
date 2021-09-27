@@ -68,6 +68,8 @@
         </template>
       </el-table-column>
     </el-table>
+    <h4 v-if="time_total_show">时间热力图：</h4>
+    <hotpot v-if="hotpot_show" :hotpot-data="hotpot_data" :visible.sync="hotpot_show" />
     <p v-if="time_total_show" style="margin-top: 15px; font-size:15px; color:#909398; line-height:20px;">
       临时SQL：<br>
       INSERT INTO omp_center.t_daily_time_collect(FstrYear, FstrMonth, FstrDay, FuiTotalTimeWork,
@@ -91,10 +93,11 @@
 
 <script>
 import Tinymce from '@/components/Tinymce'
+import Hotpot from '@/components/Hotpot'
 import { detectDiaryData } from '@/api/diary'
 export default {
   name: 'TinymceDemo',
-  components: { Tinymce },
+  components: { Tinymce, Hotpot },
   data() {
     var currentDate = new Date()
     var month = currentDate.getMonth() < 9 ? '0' + (currentDate.getMonth() + 1) : currentDate.getMonth() + 1
@@ -118,7 +121,9 @@ export default {
         plan_time: 0,
         recreation_time: 0,
         daily_time: 0
-      }]
+      }],
+      hotpot_data: undefined,
+      hotpot_show: false
     }
   },
   methods: {
@@ -129,6 +134,7 @@ export default {
       this.list.day = str_list[2]
     },
     detect() {
+      this.hotpot_show = false
       detectDiaryData(this.list).then((rsp) => {
         console.log(rsp)
         this.$notify({
@@ -137,14 +143,32 @@ export default {
           type: 'success',
           duration: 2000
         })
-        this.time_total_table[0].exercise_time = rsp.data['健身']
-        this.time_total_table[0].read_time = rsp.data['阅读']
-        this.time_total_table[0].study_time = rsp.data['学习']
-        this.time_total_table[0].work_time = rsp.data['工作']
-        this.time_total_table[0].plan_time = rsp.data['规划']
-        this.time_total_table[0].recreation_time = rsp.data['娱乐']
-        this.time_total_table[0].daily_time = rsp.data['日常']
+        if (rsp.data['健身']) {
+          this.time_total_table[0].exercise_time = rsp.data['健身']
+        }
+        if (rsp.data['阅读']) {
+          this.time_total_table[0].read_time = rsp.data['阅读']
+        }
+        if (rsp.data['学习']) {
+          this.time_total_table[0].study_time = rsp.data['学习']
+        }
+        if (rsp.data['工作']) {
+          this.time_total_table[0].work_time = rsp.data['工作']
+        }
+        if (rsp.data['规划']) {
+          this.time_total_table[0].plan_time = rsp.data['规划']
+        }
+        if (rsp.data['娱乐']) {
+          this.time_total_table[0].recreation_time = rsp.data['娱乐']
+        }
+        if (rsp.data['日常']) {
+          this.time_total_table[0].daily_time = rsp.data['日常']
+        }
+        if (rsp.data['hotpot']) {
+          this.hotpot_data = rsp.data['hotpot']
+        }
         this.time_total_show = true
+        this.hotpot_show = true
       }).catch((err) => {
         this.$notify({
           title: '失败',
