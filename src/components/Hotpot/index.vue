@@ -48,7 +48,7 @@ export default {
       var font_size = 6
       var font_margin = font_size * 6 + 2
       var legend_margin = tube_size
-      var legend_padding = tube_size/3
+      var legend_padding = tube_size / 3
       var color_dict = {
         '日常': color_daily,
         '规划': color_plan,
@@ -62,27 +62,27 @@ export default {
       var color_dict_len = Object.keys(color_dict).length
 
       // 绘制 y 轴时间 Tag
-      var y_time_tag = ['00:00-02:00', '02:00-04:00', '04:00-06:00', '06:00-08:00', '08:00-10:00', '10:00-12:00', 
+      var y_time_tag = ['00:00-02:00', '02:00-04:00', '04:00-06:00', '06:00-08:00', '08:00-10:00', '10:00-12:00',
         '12:00-14:00', '14:00-16:00', '16:00-18:00', '18:00-20:00', '20:00-21:00', '22:00-24:00']
-      ctx.font = font_size+"px 微软雅黑"
-      for(var i = 0; i < y_time_tag.length; i++) {
-        ctx.fillText(y_time_tag[i], 0, tube_size-5 + tube_size * i)
+      ctx.font = font_size + 'px 微软雅黑'
+      for (var i = 0; i < y_time_tag.length; i++) {
+        ctx.fillText(y_time_tag[i], 0, tube_size - 5 + tube_size * i)
       }
 
       // 绘制图示
       var count = 1
-      for(var key in color_dict) {
+      for (var key in color_dict) {
         ctx.fillStyle = color_dict[key]
-        ctx.fillRect(font_margin + table_col * tube_size + legend_margin, tube_size * table_row / color_dict_len * count - tube_size / 2 , tube_size, tube_size)
+        ctx.fillRect(font_margin + table_col * tube_size + legend_margin, tube_size * table_row / color_dict_len * count - tube_size / 2, tube_size, tube_size)
         ctx.fillStyle = 'black'
         ctx.fillText(
-          key, 
-          font_margin + table_col * tube_size + legend_margin + tube_size + legend_padding, 
+          key,
+          font_margin + table_col * tube_size + legend_margin + tube_size + legend_padding,
           tube_size * table_row / color_dict_len * count + tube_size - 5 - tube_size / 2
         )
         count += 1
         // 最后一个'none'不处理
-        if(count == color_dict_len) {
+        if (count === color_dict_len) {
           break
         }
       }
