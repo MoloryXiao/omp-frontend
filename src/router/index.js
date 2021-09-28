@@ -65,6 +65,12 @@ export const constantRoutes = [
         name: 'PrizeList',
         component: () => import('@/views/tree/index'),
         meta: { title: '奖品列表', icon: 'tree' }
+      },
+      {
+        path: 'time-hotpot',
+        name: 'TimeHotpot',
+        component: () => import('@/views/hotpot/index'),
+        meta: { title: '时间热点', icon: 'el-icon-star-off' }
       }
     ]
   },

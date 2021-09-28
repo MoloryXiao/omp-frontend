@@ -86,7 +86,7 @@
       检测
     </el-button>
     <el-button class="bottom-submit-btn" type="success" size="small" @click="detect">
-      提交
+      保存
     </el-button>
   </div>
 </template>
