@@ -6,12 +6,14 @@
       value-format="yyyy-MM-dd"
       placeholder="选择日期"
       style="width:160px;"
-      :change="calcPickerDateParam()"
+      :clearable="false"
+      :editable="false"
+      @change="calcPickerDateParam()"
     />
     <div class="editor-content">
-      <tinymce v-model="list.content" :height="400" />
+      <tinymce id="tinymceId" v-model="list.content" :height="400" />
     </div>
-    <!-- <div class="editor-content" v-html="list.content" /> -->
+    <!-- {{ list.content }} -->
     <el-table
       class="table-container"
       :data="time_total_table"
@@ -82,10 +84,10 @@
       UPDATE omp_center.t_daily_time_collect SET FuiTotalTimeAll=FuiTotalTimeWork+FuiTotalTimeStudy+FuiTotalTimeRead+FuiTotalTimeExercise+FuiTotalTimePlan;<br>
       UPDATE omp_center.t_daily_time_collect SET FuiAverageTimeall=(FuiTotalTimeWork+FuiTotalTimeStudy+FuiTotalTimeRead+FuiTotalTimeExercise+FuiTotalTimePlan)/4;
     </p>
-    <el-button class="bottom-submit-btn" type="primary" size="small" @click="detect">
+    <el-button class="bottom-submit-btn" type="primary" size="small" @click="detectDiary">
       检测
     </el-button>
-    <el-button class="bottom-submit-btn" type="success" size="small" @click="detect">
+    <el-button class="bottom-submit-btn" type="success" size="small" @click="saveDiary">
       保存
     </el-button>
   </div>
@@ -94,7 +96,7 @@
 <script>
 import Tinymce from '@/components/Tinymce'
 import Hotpot from '@/components/Hotpot'
-import { detectDiaryData } from '@/api/diary'
+import { saveDiaryData, detectDiaryData, getDiaryData } from '@/api/diary'
 export default {
   name: 'TinymceDemo',
   components: { Tinymce, Hotpot },
@@ -126,23 +128,84 @@ export default {
       hotpot_show: false
     }
   },
+  mounted() {
+    this.fetchData()
+  },
   methods: {
+    fetchData() {
+      var query = {
+        'year': this.list.year,
+        'month': this.list.month,
+        'day': this.list.day
+      }
+      getDiaryData(query).then((rsp) => {
+        console.log(rsp)
+        if (rsp.count === 0) {
+          this.$message({
+            message: query['year'] + '-' + query['month'] + '-' + query['day'] + ' 暂无日记',
+            type: 'info',
+            duration: '2000'
+          })
+          this.list.content = `<h3>时间流水记录</h3>
+            <table style="border-collapse: collapse; width: 100%;" border="1"> <tbody> <tr> <td style="width: 100%;">&nbsp;</td> </tr> </tbody> </table>`
+          this.hotpot_show = false
+          this.time_total_show = false
+          this.resetTimeTotalTable()
+          this.$nextTick(() => {
+            window.tinymce.get('tinymceId').setContent(this.list.content)
+          })
+        } else if (rsp.count === 1) {
+          this.$message({
+            message: '已加载 ' + query['year'] + '-' + query['month'] + '-' + query['day'] + ' 日记',
+            type: 'success',
+            duration: '2000'
+          })
+          if (rsp['results']) {
+            var need_message_hint = false
+            this.detectDiary(need_message_hint)
+            this.list.content = rsp['results'][0].content
+            this.$nextTick(() => {
+              window.tinymce.get('tinymceId').setContent(this.list.content)
+            })
+          }
+        } else {
+          this.$message({
+            message: '加载失败，日记条数异常',
+            type: 'error',
+            duration: '2000'
+          })
+        }
+      })
+    },
     calcPickerDateParam() {
       var str_list = this.pickerDate.split('-')
       this.list.year = str_list[0]
       this.list.month = str_list[1]
       this.list.day = str_list[2]
+      this.fetchData()
     },
-    detect() {
-      this.hotpot_show = false
-      detectDiaryData(this.list).then((rsp) => {
-        console.log(rsp)
+    saveDiary() {
+      saveDiaryData(this.list).then((rsp) => {
         this.$notify({
           title: '成功',
-          message: '检测成功',
+          message: '保存成功',
           type: 'success',
           duration: 2000
         })
+      })
+    },
+    detectDiary(need_message_hint) {
+      this.hotpot_show = false
+      detectDiaryData(this.list).then((rsp) => {
+        console.log(rsp)
+        if (need_message_hint) {
+          this.$notify({
+            title: '成功',
+            message: '检测成功',
+            type: 'success',
+            duration: 2000
+          })
+        }
         if (rsp.data['健身']) {
           this.time_total_table[0].exercise_time = rsp.data['健身']
         }
@@ -177,6 +240,17 @@ export default {
           duration: 2000
         })
       })
+    },
+    resetTimeTotalTable() {
+      this.time_total_table = [{
+        exercise_time: 0,
+        read_time: 0,
+        study_time: 0,
+        work_time: 0,
+        plan_time: 0,
+        recreation_time: 0,
+        daily_time: 0
+      }]
     },
     numFilter(value) {
       const realVal = parseFloat(value).toFixed(2)

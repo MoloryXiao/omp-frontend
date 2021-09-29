@@ -3,7 +3,7 @@
     <div class="filter-container">
       <!-- <el-date-picker v-model="listQuery.year" type="year" placeholder="选择年"></el-date-picker> -->
       {{ listQuery.month }}月-月计划视图：<br><br>
-      <el-date-picker v-model="datePickerTime" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" :change="updateModelYearMonth('ListQuery')" />
+      <el-date-picker v-model="datePickerTime" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" @change="updateModelYearMonth('ListQuery')" />
       <el-select v-model="listQuery.task_type" placeholder="任务类型" clearable style="width: 130px; margin-right: 12px;" class="filter-item">
         <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>

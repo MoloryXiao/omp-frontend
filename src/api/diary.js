@@ -7,3 +7,19 @@ export function detectDiaryData(data) {
     data
   })
 }
+
+export function saveDiaryData(data) {
+  return request({
+    url: '/api/diary/diaries/',
+    method: 'post',
+    data
+  })
+}
+
+export function getDiaryData(query) {
+  return request({
+    url: '/api/diary/diaries/',
+    method: 'get',
+    params: query
+  })
+}
