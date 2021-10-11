@@ -205,10 +205,10 @@ export default {
               barBorderRadius: 0,
               label: {
                 show: true,
-                textStyle: {
-                  color: '#fff'
-                },
-                position: 'insideTop', // 数字展示位置 top:数据条外顶 insideTop:数据条内顶
+                // textStyle: {
+                //   color: '#fff'
+                // },
+                position: 'top', // 数字展示位置 top:数据条外顶 insideTop:数据条内顶
                 formatter(p) {
                   return p.value > 0 ? p.value : ''
                 }

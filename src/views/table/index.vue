@@ -3,7 +3,7 @@
     <div class="filter-container">
       <!-- <el-date-picker v-model="listQuery.year" type="year" placeholder="选择年"></el-date-picker> -->
       {{ listQuery.month }}月-月计划视图：<br><br>
-      <el-date-picker v-model="datePickerTime" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" @change="updateModelYearMonth('ListQuery')" />
+      <el-date-picker v-model="datePickerTime" :clearable="false" :editable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" @change="updateModelYearMonth('ListQuery')" />
       <el-select v-model="listQuery.task_type" placeholder="任务类型" clearable style="width: 130px; margin-right: 12px;" class="filter-item">
         <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>
@@ -69,7 +69,7 @@
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" :page-sizes="[5,10,20,50,100]" style="float:right;" @pagination="fetchData" />
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" :page-sizes="[5,10,15,20,30,50]" style="float:right;" @pagination="fetchData" />
 
     <!-- 新增/修改 弹窗 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
@@ -156,7 +156,7 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 10,
+        limit: 15,
         year: date.getFullYear(),
         month: date.getMonth() + 1,
         task_type: undefined,
@@ -209,6 +209,7 @@ export default {
       if (location === 'ListQuery') {
         this.listQuery.year = this.datePickerTime.substring(0, 4)
         this.listQuery.month = this.datePickerTime.substring(5)
+        this.fetchData()
       } else if (location === 'Dialog') {
         this.temp.year = this.dialogMonthPicker.substring(0, 4)
         this.temp.month = this.dialogMonthPicker.substring(5)
