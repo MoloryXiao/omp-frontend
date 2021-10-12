@@ -51,7 +51,7 @@ export const constantRoutes = [
       {
         path: 'week-plan-target',
         name: 'WeekPlanTarget',
-        component: () => import('@/views/table/index'),
+        component: () => import('@/views/plan/week_list'),
         meta: { title: '周计划目标', icon: 'el-icon-postcard' }
       },
       {

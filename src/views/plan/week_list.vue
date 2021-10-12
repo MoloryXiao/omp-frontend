@@ -2,8 +2,18 @@
   <div class="app-container">
     <div class="filter-container">
       <!-- <el-date-picker v-model="listQuery.year" type="year" placeholder="选择年"></el-date-picker> -->
-      {{ listQuery.month }}月-月计划视图：<br><br>
-      <el-date-picker v-model="datePickerTime" :clearable="false" :editable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px; margin-right: 12px;" @change="updateModelYearMonth('ListQuery')" />
+      {{ listQuery.month }}月-周计划视图：<br><br>
+      <el-date-picker
+        v-model="weekPickerTime"
+        type="week"
+        placeholder="请选择"
+        format="yyyy 第 WW 周"
+        style="width:180px; margin-right: 12px;"
+        value-format="yyyy-MM-dd"
+        :clearable="false"
+        :picker-options="{ firstDayOfWeek: 1 }"
+        @change="updateQuerySEdate()"
+      />
       <el-select v-model="listQuery.task_type" placeholder="任务类型" clearable style="width: 130px; margin-right: 12px;" class="filter-item">
         <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>
@@ -24,45 +34,34 @@
       fit
       highlight-current-row
     >
-      <el-table-column align="center" label="ID" min-width="65">
+      <el-table-column align="center" label="ID" width="80">
         <template slot-scope="scope">
           {{ (listQuery.page-1)*listQuery.limit+(scope.$index+1) }}
         </template>
       </el-table-column>
-      <el-table-column label="任务项" min-width="150" align="left" header-align="center">
+      <el-table-column label="任务项" min-width="400" align="left" header-align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
           <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="当前/目标" min-width="70" align="center">
+      <el-table-column label="预计开始时间" width="150" align="center" header-align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.completed_times }}/{{ scope.row.target_times }}</span>
+          <span>{{ scope.row.start_date }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="当前进度" min-width="230" align="left" header-align="center">
+      <el-table-column label="预计结束时间" width="150" align="center" header-align="center">
         <template slot-scope="scope">
-          <el-progress
-            :percentage="Math.floor(scope.row.completed_times/scope.row.target_times*100)"
-            :status="progressStatus(scope.row.completed_times/scope.row.target_times*100, scope.row.status)"
-            :color="progressColors"
-          />
+          <span>{{ scope.row.end_date }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="查看详情" min-width="60" align="center">
-        <template>
-          <el-link type="primary" size="mini">查看</el-link>
-        </template>
-      </el-table-column>
-      <el-table-column class-name="status-col" label="状态" min-width="50" align="center">
+      <el-table-column class-name="status-col" label="状态" width="100" align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.status | statusFilter">{{ statusNameList[scope.row.status] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" min-width="110" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="140" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
-          <el-button v-if="row.status==1" size="mini" icon="el-icon-plus" circle @click="increaseTimes(row.id)" />
-          <el-button v-if="row.status==1" size="mini" icon="el-icon-minus" circle @click="decreaseTimes(row.id)" />
           <el-button size="mini" type="primary" icon="el-icon-edit" circle @click="handleUpdate(row)" />
           <el-button slot="reference" size="mini" type="danger" icon="el-icon-delete" circle @click="deleConfirm(row)" />
         </template>
@@ -74,9 +73,20 @@
     <!-- 新增/修改 弹窗 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 400px; margin-left:50px;">
-        <el-form-item label="月份:" prop="month">
-          <el-date-picker v-model="dialogMonthPicker" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px;" @change="updateModelYearMonth('Dialog')" />
-        </el-form-item>
+        <!-- <el-form-item label="周次:" prop="month"> -->
+          <!-- <el-date-picker v-model="dialogWeekPicker" :clearable="false" type="week" placeholder="选择日期" format="yyyy 第 WW 周" value-format="yyyy-MM-dd" style="width:180px;" @change="updateModelYMW('Dialog')" :picker-options="{ firstDayOfWeek: 1 }" /> -->
+          <!-- <el-date-picker
+            v-model="dialogWeekPicker"
+            type="week"
+            placeholder="请选择日期"
+            format="yyyy 第 WW 周"
+            style="width:180px; margin-right: 12px;"
+            value-format="yyyy-MM-dd"
+            :clearable="false"
+            :picker-options="{ firstDayOfWeek: 1 }"
+            @change="updateModelYMW('Dialog')"
+          /> -->
+        <!-- </el-form-item> -->
         <el-form-item label="任务名称:" prop="task_name">
           <el-input v-model="temp.task_name" placeholder="任务项名称" />
         </el-form-item>
@@ -85,11 +95,23 @@
             <el-option v-for="item in taskTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
           </el-select>
         </el-form-item>
-        <el-form-item label="目标次数:" prop="target_times">
-          <el-input v-model="temp.target_times" placeholder="目标完成次数" />
+        <el-form-item label="开始时间:" prop="start_date">
+          <el-date-picker
+            v-model="temp.start_date"
+            type="date"
+            placeholder="选择日期"
+            value-format="yyyy-MM-dd"
+            :picker-options="{ firstDayOfWeek: 1 }"
+          />
         </el-form-item>
-        <el-form-item label="当前次数:" prop="completed_times">
-          <el-input v-model="temp.completed_times" placeholder="当前已完成次数" />
+        <el-form-item label="结束时间:" prop="end_date">
+          <el-date-picker
+            v-model="temp.end_date"
+            type="date"
+            placeholder="选择日期"
+            value-format="yyyy-MM-dd"
+            :picker-options="{ firstDayOfWeek: 1 }"
+          />
         </el-form-item>
         <el-form-item label="状态:" prop="task_type">
           <el-select v-model="temp.status" class="filter-item" placeholder="请选择">
@@ -110,7 +132,7 @@
 </template>
 
 <script>
-import { getMonthPlanList, increaseTimes, decreaseTimes, createMonthPlan, updateMonthPlan, deleteMonthPlan } from '@/api/plan'
+import { getWeekPlanList, createWeekPlan, updateWeekPlan, deleteWeekPlan } from '@/api/plan'
 import Pagination from '@/components/Pagination'
 
 const taskTypeOptions = [
@@ -121,20 +143,20 @@ const taskTypeOptions = [
 ]
 
 const statusTypeOptions = [
-  { key: 1, display_name: '1-开启' },
-  { key: 0, display_name: '0-停止' }
+  { key: 0, display_name: '0-未完成' },
+  { key: 1, display_name: '1-已完成' }
 ]
 
 const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
-const statusNameList = ['停止', '开启']
+const statusNameList = ['未完成', '已完成']
 
 export default {
   components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
-        0: 'danger',
-        1: 'draft'
+        0: 'draft',
+        1: 'success'
       }
       return statusMap[status]
     },
@@ -157,31 +179,22 @@ export default {
       listQuery: {
         page: 1,
         limit: 15,
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
+        start_date: '',
+        end_date: '',
         task_type: undefined,
         task_name: undefined
       },
-      datePickerTime: date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString(),
-      dialogMonthPicker: date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString(),
-      progressColors: [
-        { color: '#909399', percentage: 20 }, // <20 灰色
-        { color: '#e6a23c', percentage: 60 }, // <60 黄色
-        { color: '#1989fa', percentage: 95 }, // <95 蓝色
-        { color: '#5cb87a', percentage: 100 } // <100 绿色
-      ],
+      weekPickerTime: date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString() + '-' + (date.getDate()).toString(),
       taskTypeNameList,
       statusNameList,
       taskTypeOptions,
       statusTypeOptions,
       temp: {
         id: undefined,
-        year: '',
-        month: '',
         task_name: '',
         task_type: undefined,
-        target_times: '',
-        completed_times: '',
+        start_date: '',
+        end_date: '',
         status
       },
       dialogFormVisible: false,
@@ -195,29 +208,41 @@ export default {
         month: [{ required: true, message: '月份必填', trigger: 'change' }],
         task_name: [{ required: true, message: '任务名称必填', trigger: 'blur' }],
         task_type: [{ required: true, message: '任务类型必填', trigger: 'change' }],
-        target_times: [{ required: true, message: '目标次数必填', trigger: 'blur' }],
-        completed_times: [{ required: true, message: '已完成次数必填', trigger: 'blur' }],
+        start_date: [{ required: true, message: '预计开始时间必填', trigger: 'change' }],
+        end_date: [{ required: true, message: '预计结束时间必填', trigger: 'change' }],
         status: [{ required: true, message: '状态必填', trigger: 'change' }]
       }
     }
   },
-  created() {
-    this.fetchData()
+  mounted() {
+    this.updateQuerySEdate()
   },
   methods: {
-    updateModelYearMonth(location) {
-      if (location === 'ListQuery') {
-        this.listQuery.year = this.datePickerTime.substring(0, 4)
-        this.listQuery.month = this.datePickerTime.substring(5)
-        this.fetchData()
-      } else if (location === 'Dialog') {
-        this.temp.year = this.dialogMonthPicker.substring(0, 4)
-        this.temp.month = this.dialogMonthPicker.substring(5)
-      }
+    getWeekStartAndEndDate(dt) {
+      const d1 = new Date(dt)
+      // 将星期天从0转为7
+      const d1_week = d1.getDay() === 0 ? 7 : d1.getDay()
+      // 获取该周周一的日期
+      const d2 = new Date(d1.getTime() - (d1_week - 1) * 24 * 3600 * 1000)
+      // 获取该周周天的日期
+      const d3 = new Date(d1.getTime() + (7 - d1_week) * 24 * 3600 * 1000)      
+      return [this.formatDate(d2), this.formatDate(d3)]
+    },
+    formatDate(dt) {
+      const year = dt.getFullYear()
+      const month = dt.getMonth() + 1 < 10 ? '0' + (dt.getMonth() + 1) : dt.getMonth() + 1
+      const day = dt.getDate() < 10 ? '0' + dt.getDate() : dt.getDate()
+      return year + '-' + month + '-' + day
+    },
+    updateQuerySEdate() {
+      const [start_d, end_d] = this.getWeekStartAndEndDate(this.weekPickerTime)
+      this.listQuery.start_date = start_d
+      this.listQuery.end_date = end_d
+      this.fetchData()
     },
     fetchData() {
       this.listLoading = true
-      getMonthPlanList(this.listQuery).then(response => {
+      getWeekPlanList(this.listQuery).then(response => {
         this.list = response.results
         this.total = response.count
         this.listLoading = false
@@ -237,16 +262,17 @@ export default {
     },
     resetTemp() {
       const date = new Date()
+      this.dialogWeekPicker = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString() + '-' + (date.getDate()).toString()
       this.temp = {
         id: undefined,
         year: '',
         month: '',
+        week: '',
         task_name: '',
         task_type: undefined,
         target_times: '',
         completed_times: ''
       }
-      this.dialogMonthPicker = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString()
     },
     handleCreate() {
       this.resetTemp()
@@ -260,8 +286,7 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.temp.status = 1
-          createMonthPlan(this.temp).then(() => {
-            // this.list.push(this.temp)
+          createWeekPlan(this.temp).then(() => {
             this.dialogFormVisible = false
             this.fetchData()
             this.$notify({
@@ -276,7 +301,6 @@ export default {
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
-      this.dialogMonthPicker = row.year + '-' + row.month
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
       this.$nextTick(() => {
@@ -287,7 +311,7 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
-          updateMonthPlan(tempData.id, tempData).then(() => {
+          updateWeekPlan(tempData.id, tempData).then(() => {
             // const index = this.list.findIndex(v => v.id === this.temp.id)
             // this.list.splice(index, 1, this.temp)
             this.dialogFormVisible = false
@@ -309,7 +333,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        deleteMonthPlan(row.id).then(() => {
+        deleteWeekPlan(row.id).then(() => {
           this.$notify({
             title: '成功',
             message: '删除成功',
@@ -326,48 +350,6 @@ export default {
             type: 'error',
             duration: 2000
           })
-        })
-      })
-    },
-    increaseTimes(index) {
-      increaseTimes(index).then(() => {
-        // const index = this.list.findIndex(v => v.id === this.temp.id)
-        // this.list.splice(index, 1, this.temp)
-        this.dialogFormVisible = false
-        this.$notify({
-          title: '成功',
-          message: '当前次数已加1',
-          type: 'success',
-          duration: 2000
-        })
-        this.fetchData()
-      }).catch((err) => {
-        this.$notify({
-          title: '失败',
-          message: err.response.data.basic.msg,
-          type: 'error',
-          duration: 2000
-        })
-      })
-    },
-    decreaseTimes(index) {
-      decreaseTimes(index).then(() => {
-        // const index = this.list.findIndex(v => v.id === this.temp.id)
-        // this.list.splice(index, 1, this.temp)
-        this.dialogFormVisible = false
-        this.$notify({
-          title: '成功',
-          message: '当前次数已减1',
-          type: 'success',
-          duration: 2000
-        })
-        this.fetchData()
-      }).catch((err) => {
-        this.$notify({
-          title: '失败',
-          message: err.response.data.basic.msg,
-          type: 'error',
-          duration: 2000
         })
       })
     }
