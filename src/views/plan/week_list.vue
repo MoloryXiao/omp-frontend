@@ -73,20 +73,6 @@
     <!-- 新增/修改 弹窗 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 400px; margin-left:50px;">
-        <!-- <el-form-item label="周次:" prop="month"> -->
-          <!-- <el-date-picker v-model="dialogWeekPicker" :clearable="false" type="week" placeholder="选择日期" format="yyyy 第 WW 周" value-format="yyyy-MM-dd" style="width:180px;" @change="updateModelYMW('Dialog')" :picker-options="{ firstDayOfWeek: 1 }" /> -->
-          <!-- <el-date-picker
-            v-model="dialogWeekPicker"
-            type="week"
-            placeholder="请选择日期"
-            format="yyyy 第 WW 周"
-            style="width:180px; margin-right: 12px;"
-            value-format="yyyy-MM-dd"
-            :clearable="false"
-            :picker-options="{ firstDayOfWeek: 1 }"
-            @change="updateModelYMW('Dialog')"
-          /> -->
-        <!-- </el-form-item> -->
         <el-form-item label="任务名称:" prop="task_name">
           <el-input v-model="temp.task_name" placeholder="任务项名称" />
         </el-form-item>
@@ -225,7 +211,7 @@ export default {
       // 获取该周周一的日期
       const d2 = new Date(d1.getTime() - (d1_week - 1) * 24 * 3600 * 1000)
       // 获取该周周天的日期
-      const d3 = new Date(d1.getTime() + (7 - d1_week) * 24 * 3600 * 1000)      
+      const d3 = new Date(d1.getTime() + (7 - d1_week) * 24 * 3600 * 1000)
       return [this.formatDate(d2), this.formatDate(d3)]
     },
     formatDate(dt) {
@@ -285,7 +271,6 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.status = 1
           createWeekPlan(this.temp).then(() => {
             this.dialogFormVisible = false
             this.fetchData()
