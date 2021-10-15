@@ -156,3 +156,21 @@ export function debounce(func, wait, immediate) {
     return result
   }
 }
+
+export function getWeekStartAndEndDate(dt) {
+  const d1 = new Date(dt)
+  // 将星期天从0转为7
+  const d1_week = d1.getDay() === 0 ? 7 : d1.getDay()
+  // 获取该周周一的日期
+  const d2 = new Date(d1.getTime() - (d1_week - 1) * 24 * 3600 * 1000)
+  // 获取该周周天的日期
+  const d3 = new Date(d1.getTime() + (7 - d1_week) * 24 * 3600 * 1000)
+  const d2_str = d2.getFullYear() + '-' +
+    (d2.getMonth() + 1 < 10 ? '0' + (d2.getMonth() + 1) : d2.getMonth() + 1) + '-' +
+    (d2.getDate() < 10 ? '0' + d2.getDate() : d2.getDate())
+  const d3_str = d3.getFullYear() + '-' +
+    (d3.getMonth() + 1 < 10 ? '0' + (d3.getMonth() + 1) : d3.getMonth() + 1) + '-' +
+    (d3.getDate() < 10 ? '0' + d3.getDate() : d3.getDate())
+
+  return [d2_str, d3_str]
+}

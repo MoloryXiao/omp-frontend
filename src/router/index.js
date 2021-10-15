@@ -46,19 +46,19 @@ export const constantRoutes = [
         path: 'month-plan-target',
         name: 'MonthPlanTarget',
         component: () => import('@/views/table/index'),
-        meta: { title: '月计划目标', icon: 'el-icon-postcard' }
+        meta: { title: '月计划目标', icon: 'el-icon-date' }
       },
       {
         path: 'week-plan-target',
         name: 'WeekPlanTarget',
         component: () => import('@/views/plan/week_list'),
-        meta: { title: '周计划目标', icon: 'el-icon-postcard' }
+        meta: { title: '周计划目标', icon: 'el-icon-s-order' }
       },
       {
         path: 'time-diary',
         name: 'TimeDiary',
         component: () => import('@/views/diary/index'),
-        meta: { title: '时间日记', icon: 'el-icon-notebook-2' }
+        meta: { title: '时间日记', icon: 'el-icon-collection' }
       },
       {
         path: 'prize-list',
@@ -101,6 +101,17 @@ export const constantRoutes = [
       {
         path: 'https://git.yingzhongtong.com/lette.xiao/ftp-vue-admin',
         meta: { title: 'Git 代码仓库', icon: 'link' }
+      }
+    ]
+  },
+  {
+    path: '/redirect',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '/redirect/:path*',
+        component: () => import('@/views/redirect/index')
       }
     ]
   },

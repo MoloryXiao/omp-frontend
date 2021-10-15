@@ -1,8 +1,7 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <!-- <el-date-picker v-model="listQuery.year" type="year" placeholder="选择年"></el-date-picker> -->
-      {{ listQuery.month }}月-周计划视图：<br><br>
+      周计划视图：<br><br>
       <el-date-picker
         v-model="weekPickerTime"
         type="week"

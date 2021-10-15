@@ -1,5 +1,11 @@
 <template>
   <div class="components-container">
+    <router-link :to="'/objectManage/month-plan-target'">
+      <el-button type="primary" size="small" icon="el-icon-edit">
+        edit
+      </el-button>
+    </router-link>
+    <h4>日期(Date)</h4>
     <el-date-picker
       v-model="pickerDate"
       type="date"
@@ -8,12 +14,75 @@
       style="width:160px;"
       :clearable="false"
       :editable="false"
+      :picker-options="{ firstDayOfWeek: 1 }"
       @change="calcPickerDateParam()"
     />
+    <el-row>
+      <el-col :span="11">
+        <h4>月计划(Month Plan)</h4>
+        <el-table
+          v-loading="monthListLoading"
+          :data="monthListContent"
+          element-loading-text="Loading"
+          size="mini"
+        >
+          <el-table-column label="任务项" min-width="250" align="left" header-align="center">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
+              <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="当前/目标次数" min-width="120" align="center">
+            <template slot-scope="scope">
+              <span>{{ scope.row.completed_times }}次/{{ scope.row.target_times }}次</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" align="center" min-width="110" class-name="small-padding fixed-width">
+            <template slot-scope="{row}">
+              <el-button v-if="row.status==1" size="mini" icon="el-icon-plus" circle @click="increaseTimes(row.id)" />
+              <el-button v-if="row.status==1" size="mini" icon="el-icon-minus" circle @click="decreaseTimes(row.id)" />
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-col>
+      <el-col :span="12" :offset="1">
+        <h4>周计划(Week Plan)</h4>
+        <el-table
+          v-loading="weekListLoading"
+          :data="weekListContent"
+          element-loading-text="Loading"
+          size="mini"
+        >
+          <el-table-column label="任务项" min-width="240" align="left" header-align="center">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
+              <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="预计开始/结束" min-width="160" align="center" header-align="center">
+            <template slot-scope="scope">
+              <span>{{ scope.row.start_date }} - {{ scope.row.end_date }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column class-name="status-col" label="状态" min-width="100" align="center">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.status | statusFilter" size="mini">{{ statusNameList[scope.row.status] }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" align="center" min-width="60" class-name="small-padding fixed-width">
+            <template slot-scope="{row}">
+              <el-button v-if="row.status==0" type="success" size="mini" icon="el-icon-s-flag" circle @click="statusInversion(row.id)" />
+              <el-button v-if="row.status==1" size="mini" icon="el-icon-refresh-left" circle @click="statusInversion(row.id)" />
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-col>
+    </el-row>
+
+    <h4>日记录(Daily Recording)</h4>
     <div class="editor-content">
       <tinymce id="tinymceId" v-model="list.content" :height="400" />
     </div>
-    <!-- {{ list.content }} -->
     <el-table
       class="table-container"
       :data="time_total_table"
@@ -97,9 +166,33 @@
 import Tinymce from '@/components/Tinymce'
 import Hotpot from '@/components/Hotpot'
 import { saveDiaryData, detectDiaryData, getDiaryData } from '@/api/diary'
+import { getMonthPlanList, increaseTimes, decreaseTimes, getWeekPlanList, weekPlanStatusInversion } from '@/api/plan'
+import { getWeekStartAndEndDate } from '@/utils'
+
+const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
+const statusNameList = ['未完成', '已完成']
+
 export default {
   name: 'TinymceDemo',
   components: { Tinymce, Hotpot },
+  filters: {
+    statusFilter(status) {
+      const statusMap = {
+        0: 'danger',
+        1: 'draft'
+      }
+      return statusMap[status]
+    },
+    taskTypeFilter(status) {
+      const statusMap = {
+        1: 'success', // 学习
+        2: 'draft', // 工作
+        3: 'warning', // 生活
+        4: 'danger' // 规划
+      }
+      return statusMap[status]
+    }
+  },
   data() {
     var currentDate = new Date()
     var month = currentDate.getMonth() < 9 ? '0' + (currentDate.getMonth() + 1) : currentDate.getMonth() + 1
@@ -114,6 +207,12 @@ export default {
         month: month,
         day: day
       },
+      monthListContent: null,
+      monthListLoading: true,
+      weekListContent: null,
+      weekListLoading: true,
+      statusNameList,
+      taskTypeNameList,
       time_total_show: false,
       time_total_table: [{
         exercise_time: 0,
@@ -132,14 +231,41 @@ export default {
     this.fetchData()
   },
   methods: {
-    fetchData() {
+    refreshMonthListData() {
+      var monthListQuery = {
+        page: 1,
+        limit: 1000,
+        year: this.list.year,
+        month: this.list.month
+      }
+      this.monthListLoading = true
+      getMonthPlanList(monthListQuery).then(response => {
+        this.monthListContent = response.results
+        this.monthListLoading = false
+      })
+    },
+    refreshWeekListData() {
+      const dt = this.list.year + '-' + this.list.month + '-' + this.list.day
+      const [start_d, end_d] = getWeekStartAndEndDate(dt)
+      var weekListQuery = {
+        page: 1,
+        limit: 1000,
+        start_date: start_d,
+        end_date: end_d
+      }
+      this.weekListLoading = true
+      getWeekPlanList(weekListQuery).then(response => {
+        this.weekListContent = response.results
+        this.weekListLoading = false
+      })
+    },
+    refreshDiaryData() {
       var query = {
         'year': this.list.year,
         'month': this.list.month,
         'day': this.list.day
       }
       getDiaryData(query).then((rsp) => {
-        console.log(rsp)
         if (rsp.count === 0) {
           this.$message({
             message: query['year'] + '-' + query['month'] + '-' + query['day'] + ' 暂无日记',
@@ -177,6 +303,14 @@ export default {
         }
       })
     },
+    fetchData() {
+      // 获取月计划
+      this.refreshMonthListData()
+      // 获取周计划
+      this.refreshWeekListData()
+      // 获取日记
+      this.refreshDiaryData()
+    },
     calcPickerDateParam() {
       var str_list = this.pickerDate.split('-')
       this.list.year = str_list[0]
@@ -197,7 +331,6 @@ export default {
     detectDiary(need_message_hint) {
       this.hotpot_show = false
       detectDiaryData(this.list).then((rsp) => {
-        console.log(rsp)
         if (need_message_hint) {
           this.$notify({
             title: '成功',
@@ -255,6 +388,67 @@ export default {
     numFilter(value) {
       const realVal = parseFloat(value).toFixed(2)
       return realVal
+    },
+    increaseTimes(index) {
+      increaseTimes(index).then(() => {
+        // const index = this.list.findIndex(v => v.id === this.temp.id)
+        // this.list.splice(index, 1, this.temp)
+        this.dialogFormVisible = false
+        this.$notify({
+          title: '成功',
+          message: '当前次数已加1',
+          type: 'success',
+          duration: 2000
+        })
+        this.refreshMonthListData()
+      }).catch((err) => {
+        this.$notify({
+          title: '失败',
+          message: err.response.data.basic.msg,
+          type: 'error',
+          duration: 2000
+        })
+      })
+    },
+    decreaseTimes(index) {
+      decreaseTimes(index).then(() => {
+        // const index = this.list.findIndex(v => v.id === this.temp.id)
+        // this.list.splice(index, 1, this.temp)
+        this.dialogFormVisible = false
+        this.$notify({
+          title: '成功',
+          message: '当前次数已减1',
+          type: 'success',
+          duration: 2000
+        })
+        this.refreshMonthListData()
+      }).catch((err) => {
+        this.$notify({
+          title: '失败',
+          message: err.response.data.basic.msg,
+          type: 'error',
+          duration: 2000
+        })
+      })
+    },
+    statusInversion(index) {
+      weekPlanStatusInversion(index).then(() => {
+        this.dialogFormVisible = false
+        this.$notify({
+          title: '成功',
+          message: '当前次数已减1',
+          type: 'success',
+          duration: 2000
+        })
+        this.refreshWeekListData()
+      }).catch((err) => {
+        this.$notify({
+          title: '失败',
+          message: err.response.data.basic.msg,
+          type: 'error',
+          duration: 2000
+        })
+      })
     }
   }
 }

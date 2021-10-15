@@ -76,3 +76,10 @@ export function deleteWeekPlan(id) {
     method: 'delete'
   })
 }
+
+export function weekPlanStatusInversion(id) {
+  return request({
+    url: '/api/plan/week_plans/' + id + '/status_inversion/',
+    method: 'post'
+  })
+}
