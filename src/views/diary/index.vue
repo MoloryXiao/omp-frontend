@@ -1,10 +1,5 @@
 <template>
   <div class="components-container">
-    <router-link :to="'/objectManage/month-plan-target'">
-      <el-button type="primary" size="small" icon="el-icon-edit">
-        edit
-      </el-button>
-    </router-link>
     <h4>日期(Date)</h4>
     <el-date-picker
       v-model="pickerDate"
