@@ -50,8 +50,10 @@
         </template>
       </el-table-column>
       <el-table-column label="查看详情" min-width="60" align="center">
-        <template>
-          <el-link type="primary" size="mini">查看</el-link>
+        <template slot-scope="scope">
+          <router-link :to="'/objectManage/month-list/detail/'+scope.row.id">
+            <el-link type="primary" size="mini">查看</el-link>
+          </router-link>
         </template>
       </el-table-column>
       <el-table-column class-name="status-col" label="状态" min-width="50" align="center">

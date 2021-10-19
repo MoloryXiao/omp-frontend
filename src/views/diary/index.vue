@@ -407,8 +407,6 @@ export default {
     },
     decreaseTimes(index) {
       decreaseTimes(index).then(() => {
-        // const index = this.list.findIndex(v => v.id === this.temp.id)
-        // this.list.splice(index, 1, this.temp)
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
@@ -431,7 +429,7 @@ export default {
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
-          message: '当前次数已减1',
+          message: '周计划事项状态更改成功',
           type: 'success',
           duration: 2000
         })

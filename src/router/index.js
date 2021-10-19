@@ -43,15 +43,22 @@ export const constantRoutes = [
     meta: { title: '目标管理', icon: 'el-icon-date' },
     children: [
       {
-        path: 'month-plan-target',
-        name: 'MonthPlanTarget',
-        component: () => import('@/views/table/index'),
+        path: 'month-list',
+        name: 'MonthPlanList',
+        component: () => import('@/views/plan/month/list'),
         meta: { title: '月计划目标', icon: 'el-icon-date' }
       },
       {
-        path: 'week-plan-target',
-        name: 'WeekPlanTarget',
-        component: () => import('@/views/plan/week_list'),
+        path: 'month-list/detail/:id(\\d+)',
+        name: 'MonthPlanDetail',
+        component: () => import('@/views/plan/month/detail'),
+        meta: { title: '查看月计划详情', noCache: true, activeMenu: '/objectManage/month-list' },
+        hidden: true
+      },
+      {
+        path: 'week-list',
+        name: 'WeekPlanList',
+        component: () => import('@/views/plan/week/list'),
         meta: { title: '周计划目标', icon: 'el-icon-s-order' }
       },
       {
