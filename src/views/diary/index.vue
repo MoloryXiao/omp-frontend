@@ -24,7 +24,8 @@
           <el-table-column label="任务项" min-width="250" align="left" header-align="center">
             <template slot-scope="scope">
               <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
-              <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
+              <span>&nbsp;&nbsp;{{ scope.row.task_name }}&nbsp;</span>
+              <i v-show="scope.row.completed_times === scope.row.target_times" class="el-icon-circle-check" style="color: #68C23A;" />
             </template>
           </el-table-column>
           <el-table-column label="当前/目标次数" min-width="120" align="center">
@@ -34,8 +35,8 @@
           </el-table-column>
           <el-table-column label="操作" align="center" min-width="110" class-name="small-padding fixed-width">
             <template slot-scope="{row}">
-              <el-button v-if="row.status==1" size="mini" icon="el-icon-plus" circle @click="increaseTimes(row.id)" />
-              <el-button v-if="row.status==1" size="mini" icon="el-icon-minus" circle @click="decreaseTimes(row.id)" />
+              <el-button v-if="row.status == 1 && row.completed_times < row.target_times" size="mini" icon="el-icon-plus" circle @click="increaseTimes(row.id)" />
+              <el-button v-if="row.status == 1" size="mini" icon="el-icon-minus" circle @click="decreaseTimes(row.id)" />
             </template>
           </el-table-column>
         </el-table>
@@ -78,6 +79,8 @@
     <div class="editor-content">
       <tinymce id="tinymceId" v-model="list.content" :height="400" />
     </div>
+    <h4 v-if="time_total_show">时间热力图：</h4>
+    <hotpot v-if="hotpot_show" :hotpot-data="hotpot_data" :visible.sync="hotpot_show" />
     <el-table
       class="table-container"
       :data="time_total_table"
@@ -134,9 +137,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <h4 v-if="time_total_show">时间热力图：</h4>
-    <hotpot v-if="hotpot_show" :hotpot-data="hotpot_data" :visible.sync="hotpot_show" />
-    <p v-if="time_total_show" style="margin-top: 15px; font-size:15px; color:#909398; line-height:20px;">
+    <!-- <p v-if="time_total_show" style="margin-top: 15px; font-size:15px; color:#909398; line-height:20px;">
       临时SQL：<br>
       INSERT INTO omp_center.t_daily_time_collect(FstrYear, FstrMonth, FstrDay, FuiTotalTimeWork,
       FuiTotalTimeStudy, FuiTotalTimeRead, FuiTotalTimeExercise, FuiTotalTimePlan, FuiTotalTimeAll,
@@ -147,7 +148,7 @@
       {{ time_total_table[0].plan_time }}, 0, 0, 1, now(), now(), 1);<br>
       UPDATE omp_center.t_daily_time_collect SET FuiTotalTimeAll=FuiTotalTimeWork+FuiTotalTimeStudy+FuiTotalTimeRead+FuiTotalTimeExercise+FuiTotalTimePlan;<br>
       UPDATE omp_center.t_daily_time_collect SET FuiAverageTimeall=(FuiTotalTimeWork+FuiTotalTimeStudy+FuiTotalTimeRead+FuiTotalTimeExercise+FuiTotalTimePlan)/4;
-    </p>
+    </p> -->
     <el-button class="bottom-submit-btn" type="primary" size="small" @click="detectDiary">
       检测
     </el-button>

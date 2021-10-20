@@ -184,7 +184,7 @@ export default {
         task_type: undefined,
         target_times: '',
         completed_times: '',
-        status
+        status: ''
       },
       dialogFormVisible: false,
       deleConfDialogVisible: false,
@@ -241,8 +241,8 @@ export default {
       const date = new Date()
       this.temp = {
         id: undefined,
-        year: '',
-        month: '',
+        year: date.getFullYear().toString(),
+        month: (date.getMonth() + 1).toString(),
         task_name: '',
         task_type: undefined,
         target_times: '',
