@@ -362,7 +362,7 @@ export default {
         this.time_total_show = true
         this.hotpot_show = true
       }).catch((err) => {
-        this.$notify({
+        this.$message({
           title: '失败',
           message: err.response.data.basic.msg,
           type: 'error',

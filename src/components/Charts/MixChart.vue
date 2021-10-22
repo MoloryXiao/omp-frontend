@@ -189,6 +189,7 @@ export default {
             color: '#fff' },
           borderColor: '#90979c'
         }, {
+          zoomLock: true,
           type: 'inside',
           show: true,
           height: 15,

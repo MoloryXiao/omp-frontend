@@ -8,6 +8,13 @@ export function getMonthPlanList(params) {
   })
 }
 
+export function getMonthPlanDetail(id) {
+  return request({
+    url: '/api/plan/month_plans/' + id,
+    method: 'get'
+  })
+}
+
 export function increaseTimes(id) {
   return request({
     url: '/api/plan/month_plans/' + id + '/increase_times/',
@@ -81,5 +88,13 @@ export function weekPlanStatusInversion(id) {
   return request({
     url: '/api/plan/week_plans/' + id + '/status_inversion/',
     method: 'post'
+  })
+}
+
+export function getOperationLog(query) {
+  return request({
+    url: '/api/statistics/operation_records/',
+    method: 'get',
+    params: query
   })
 }

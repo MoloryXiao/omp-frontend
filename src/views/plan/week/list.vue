@@ -177,10 +177,10 @@ export default {
       temp: {
         id: undefined,
         task_name: '',
-        task_type: undefined,
+        task_type: 1,
         start_date: '',
         end_date: '',
-        status
+        status: 0
       },
       dialogFormVisible: false,
       deleConfDialogVisible: false,
@@ -254,9 +254,10 @@ export default {
         month: '',
         week: '',
         task_name: '',
-        task_type: undefined,
+        task_type: 1,
         target_times: '',
-        completed_times: ''
+        completed_times: '',
+        status: 0
       }
     },
     handleCreate() {

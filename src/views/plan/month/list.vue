@@ -181,10 +181,10 @@ export default {
         year: '',
         month: '',
         task_name: '',
-        task_type: undefined,
+        task_type: 1,
         target_times: '',
         completed_times: '',
-        status: ''
+        status: 0
       },
       dialogFormVisible: false,
       deleConfDialogVisible: false,
@@ -244,9 +244,10 @@ export default {
         year: date.getFullYear().toString(),
         month: (date.getMonth() + 1).toString(),
         task_name: '',
-        task_type: undefined,
+        task_type: 1,
         target_times: '',
-        completed_times: ''
+        completed_times: '',
+        status: 1
       }
       this.dialogMonthPicker = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString()
     },

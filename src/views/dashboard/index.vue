@@ -40,10 +40,5 @@ export default {
     width:100%;
     border-radius:5px;
   }
-  .chart-wrapper {
-    background: #fff;
-    padding: 16px 16px 0;
-    margin-bottom: 32px;
-  }
 }
 </style>

@@ -11,28 +11,28 @@
               <i class="el-icon-user" />
               任务名
             </template>
-            第1周规划
+            {{ header_info['task_name'] }}
           </el-descriptions-item>
           <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
             <template slot="label">
               <i class="el-icon-mobile-phone" />
               类型
             </template>
-            <el-tag size="small">规划</el-tag>
+            <el-tag size="small">{{ taskTypeNameList[header_info['task_type']] }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
             <template slot="label">
               <i class="el-icon-location-outline" />
               当前次数
             </template>
-            1
+            {{ header_info['completed_times'] }}
           </el-descriptions-item>
           <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
             <template slot="label">
               <i class="el-icon-tickets" />
               目标次数
             </template>
-            10
+            {{ header_info['target_times'] }}
           </el-descriptions-item>
           <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
             <template slot="label">
@@ -58,36 +58,42 @@
         </el-descriptions>
       </el-col>
     </el-row>
-    <el-row>
-      <el-col :span="12">
+    <el-row v-if="showOperationLog" style="margin-top: 15px;">
+      <el-col :span="12" >
+        <el-calendar>
+          <template
+            slot="dateCell"
+            slot-scope="{date}"
+            >            
+            <!-- slot-scope="{date, data}" -->
+            <p :class="getDateFormat(date, 'yyyy/MM/dd') ? 'is-selected' :''">
+              {{ date.getDate() }}
+            </p>
+          </template>
+        </el-calendar>
+      </el-col>
+      <el-col :span="10" :offset="1">
         <h4>操作日志</h4>
         <el-timeline>
-          <el-timeline-item timestamp="2018/4/12" placement="top">
-            <el-card>
-              <h4>更新 Github 模板</h4>
-              <p>王小虎 提交于 2018/4/12 20:46</p>
-            </el-card>
-          </el-timeline-item>
-          <el-timeline-item timestamp="2018/4/3" placement="top">
-            <el-card>
-              <h4>更新 Github 模板</h4>
-              <p>王小虎 提交于 2018/4/3 20:46</p>
-              <el-link href="www.baidu.com" type="primary">奖品链接</el-link>
-            </el-card>
-          </el-timeline-item>
-          <el-timeline-item timestamp="2018/4/2" placement="top">
-            <el-card>
-              <h4>更新 Github 模板</h4>
-              <p>王小虎 提交于 2018/4/2 20:46</p>
+          <el-timeline-item v-for="(record_list, key, index) in opLogsDict" :timestamp="key" placement="top"  :key="index">
+            <el-card v-for="(item, i) in record_list" :key="i" style="margin-top: 12px;">
+              <h4>{{ item.operation_remark }}</h4>
+              <p>{{ item.operator }} 于 {{ item.create_time }} 操作</p>
             </el-card>
           </el-timeline-item>
         </el-timeline>
       </el-col>
+      
     </el-row>
   </div>
 </template>
 
 <script>
+import { getMonthPlanDetail, getOperationLog } from '@/api/plan'
+import { dateFormat } from '@/utils'
+
+const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
+
 export default {
   data() {
     return {
@@ -98,6 +104,54 @@ export default {
       contentStyle: {
         'text-align': 'left',
         'width': '100px'
+      },
+      header_info: {},
+      taskTypeNameList,
+      opLogsListContent: [],
+      opLogsDict: { },
+      opLogsCount: 0,
+      showOperationLog: false
+    }
+  },
+  created() {
+    const id = this.$route.params && this.$route.params.id
+    this.fetchData(id)
+  },
+  methods: {
+    fetchData(id) {
+      getMonthPlanDetail(id).then(response => {
+        this.header_info = response
+      })
+      var query = {
+        'object_category': 1,
+        'object_id': id
+      }
+      getOperationLog(query).then(response => {
+        this.opLogsListContent = response.results
+        this.opLogsCount = response.count
+        if( this.opLogsCount != 0 ) {
+          this.showOperationLog = true
+        }        
+        this.operationLogHandle()
+      })
+    },
+    getDateFormat(d, format) {
+      return this.opLogsDict.hasOwnProperty(dateFormat(d, format))
+    },
+    operationLogHandle() {
+      for(let item of this.opLogsListContent) {
+        let nameArr = item.operator.split('@')
+        item.operator = nameArr[0]
+        let d = new Date(item.create_time)
+        item.create_time = dateFormat(d, "yyyy/MM/dd hh:mm")
+        let item_date = dateFormat(d, "yyyy/MM/dd")
+        if(!this.opLogsDict.hasOwnProperty(item_date)) {
+          let arr = new Array()
+          arr.push(item)
+          this.opLogsDict[item_date] = arr
+        } else {
+          this.opLogsDict[item_date].push(item)
+        }
       }
     }
   }
@@ -105,4 +159,8 @@ export default {
 </script>
 
 <style scoped>
+.is-selected {
+  background-color: rgba(103, 194, 58, 0.9);
+  color: white;
+}
 </style>
