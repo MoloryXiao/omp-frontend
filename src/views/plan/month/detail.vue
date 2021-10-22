@@ -59,12 +59,12 @@
       </el-col>
     </el-row>
     <el-row v-if="showOperationLog" style="margin-top: 15px;">
-      <el-col :span="12" >
+      <el-col :span="12">
         <el-calendar>
           <template
             slot="dateCell"
             slot-scope="{date}"
-            >            
+          >
             <!-- slot-scope="{date, data}" -->
             <p :class="getDateFormat(date, 'yyyy/MM/dd') ? 'is-selected' :''">
               {{ date.getDate() }}
@@ -75,7 +75,7 @@
       <el-col :span="10" :offset="1">
         <h4>操作日志</h4>
         <el-timeline>
-          <el-timeline-item v-for="(record_list, key, index) in opLogsDict" :timestamp="key" placement="top"  :key="index">
+          <el-timeline-item v-for="(record_list, key, index) in opLogsDict" :key="index" :timestamp="key" placement="top">
             <el-card v-for="(item, i) in record_list" :key="i" style="margin-top: 12px;">
               <h4>{{ item.operation_remark }}</h4>
               <p>{{ item.operator }} 于 {{ item.create_time }} 操作</p>
@@ -83,7 +83,6 @@
           </el-timeline-item>
         </el-timeline>
       </el-col>
-      
     </el-row>
   </div>
 </template>
@@ -129,24 +128,24 @@ export default {
       getOperationLog(query).then(response => {
         this.opLogsListContent = response.results
         this.opLogsCount = response.count
-        if( this.opLogsCount != 0 ) {
+        if (this.opLogsCount !== 0) {
           this.showOperationLog = true
-        }        
+        }
         this.operationLogHandle()
       })
     },
     getDateFormat(d, format) {
-      return this.opLogsDict.hasOwnProperty(dateFormat(d, format))
+      return Object.prototype.hasOwnProperty.call(this.opLogsDict, dateFormat(d, format))
     },
     operationLogHandle() {
-      for(let item of this.opLogsListContent) {
-        let nameArr = item.operator.split('@')
+      for (const item of this.opLogsListContent) {
+        const nameArr = item.operator.split('@')
         item.operator = nameArr[0]
-        let d = new Date(item.create_time)
-        item.create_time = dateFormat(d, "yyyy/MM/dd hh:mm")
-        let item_date = dateFormat(d, "yyyy/MM/dd")
-        if(!this.opLogsDict.hasOwnProperty(item_date)) {
-          let arr = new Array()
+        const d = new Date(item.create_time)
+        item.create_time = dateFormat(d, 'yyyy/MM/dd hh:mm')
+        const item_date = dateFormat(d, 'yyyy/MM/dd')
+        if (!Object.prototype.hasOwnProperty.call(this.opLogsDict, item_date)) {
+          const arr = []
           arr.push(item)
           this.opLogsDict[item_date] = arr
         } else {
