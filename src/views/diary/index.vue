@@ -386,7 +386,10 @@ export default {
       return realVal
     },
     increaseTimes(index) {
-      increaseTimes(index).then(() => {
+      var data = {
+        'date': this.pickerDate
+      }
+      increaseTimes(index, data).then(() => {
         // const index = this.list.findIndex(v => v.id === this.temp.id)
         // this.list.splice(index, 1, this.temp)
         this.dialogFormVisible = false
@@ -407,7 +410,10 @@ export default {
       })
     },
     decreaseTimes(index) {
-      decreaseTimes(index).then(() => {
+      const data = {
+        'date': this.pickerDate
+      }
+      decreaseTimes(index, data).then(() => {
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
@@ -426,7 +432,10 @@ export default {
       })
     },
     statusInversion(index) {
-      weekPlanStatusInversion(index).then(() => {
+      const data = {
+        'date': this.pickerDate
+      }
+      weekPlanStatusInversion(index, data).then(() => {
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',

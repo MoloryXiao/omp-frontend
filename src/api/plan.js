@@ -15,17 +15,19 @@ export function getMonthPlanDetail(id) {
   })
 }
 
-export function increaseTimes(id) {
+export function increaseTimes(id, data) {
   return request({
     url: '/api/plan/month_plans/' + id + '/increase_times/',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
-export function decreaseTimes(id) {
+export function decreaseTimes(id, data) {
   return request({
     url: '/api/plan/month_plans/' + id + '/decrease_times/',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
@@ -84,10 +86,11 @@ export function deleteWeekPlan(id) {
   })
 }
 
-export function weekPlanStatusInversion(id) {
+export function weekPlanStatusInversion(id, data) {
   return request({
     url: '/api/plan/week_plans/' + id + '/status_inversion/',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
