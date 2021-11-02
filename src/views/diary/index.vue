@@ -26,6 +26,7 @@
               <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
               <span>&nbsp;&nbsp;{{ scope.row.task_name }}&nbsp;</span>
               <i v-show="scope.row.completed_times === scope.row.target_times" class="el-icon-circle-check" style="color: #68C23A;" />
+              <i v-show="scope.row.status === 0" class="el-icon-circle-close" style="color: #F56C6B;" />
             </template>
           </el-table-column>
           <el-table-column label="当前/目标次数" min-width="120" align="center">
