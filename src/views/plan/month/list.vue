@@ -75,7 +75,7 @@
 
     <!-- 新增/修改 弹窗 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 400px; margin-left:50px;">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 420px; margin-left:50px;">
         <el-form-item label="月份:" prop="month">
           <el-date-picker v-model="dialogMonthPicker" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px;" @change="updateModelYearMonth('Dialog')" />
         </el-form-item>
@@ -92,6 +92,30 @@
         </el-form-item>
         <el-form-item label="当前次数:" prop="completed_times">
           <el-input v-model="temp.completed_times" placeholder="当前已完成次数" />
+        </el-form-item>
+        <el-form-item label="奖励机制:" prop="reward_mechanism">
+          <el-select v-model="temp.reward_mechanism" class="filter-item" placeholder="请选择">
+            <el-option v-for="item in rewardMechanismOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          v-for="(domain, index) in temp.domains"
+          v-show="temp.reward_mechanism === 2"
+          :key="domain.key"
+          :label="'阶段 ' + (index+1) + ' :'"
+          :prop="'domains.' + index + '.value'"
+          :rules="{
+            required: true, message: '阶段性目标次数不能为空', trigger: 'blur'
+          }"
+        >
+          <el-input v-model="domain.value" :placeholder="'阶段次数'" style="width: 90px;" />
+          <el-select v-model="domain.reward_type" class="filter-item" placeholder="奖项" style="width: 78px; margin:0px 12px;">
+            <el-option v-for="item in rewardTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+          </el-select>
+          x
+          <el-input v-model="domain.reward_num" placeholder="个数" style="width: 65px; margin: 0px 12px;" />
+          <el-button v-if="index != 0" size="mini" icon="el-icon-minus" circle @click.prevent="removeDomain(domain)" />
+          <el-button v-if="index === 0" size="mini" icon="el-icon-plus" circle @click="addDomain" />
         </el-form-item>
         <el-form-item label="状态:" prop="task_type">
           <el-select v-model="temp.status" class="filter-item" placeholder="请选择">
@@ -125,6 +149,18 @@ const taskTypeOptions = [
 const statusTypeOptions = [
   { key: 1, display_name: '1-开启' },
   { key: 0, display_name: '0-停止' }
+]
+
+const rewardMechanismOptions = [
+  { key: 1, display_name: '一次性' },
+  { key: 2, display_name: '阶段性' }
+]
+
+const rewardTypeOptions = [
+  { key: 1, display_name: 'SP' },
+  { key: 2, display_name: 'MP' },
+  { key: 3, display_name: 'BP' },
+  { key: 4, display_name: 'LP' }
 ]
 
 const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
@@ -176,6 +212,8 @@ export default {
       statusNameList,
       taskTypeOptions,
       statusTypeOptions,
+      rewardMechanismOptions,
+      rewardTypeOptions,
       temp: {
         id: undefined,
         year: '',
@@ -184,6 +222,10 @@ export default {
         task_type: 1,
         target_times: '',
         completed_times: '',
+        reward_mechanism: 1,
+        domains: [{
+          value: ''
+        }],
         status: 0
       },
       dialogFormVisible: false,
@@ -199,6 +241,7 @@ export default {
         task_type: [{ required: true, message: '任务类型必填', trigger: 'change' }],
         target_times: [{ required: true, message: '目标次数必填', trigger: 'blur' }],
         completed_times: [{ required: true, message: '已完成次数必填', trigger: 'blur' }],
+        reward_mechanism: [{ required: true, message: '奖励机制必填', trigger: 'blur' }],
         status: [{ required: true, message: '状态必填', trigger: 'change' }]
       }
     }
@@ -207,6 +250,21 @@ export default {
     this.fetchData()
   },
   methods: {
+    resetForm(formName) {
+      this.$refs[formName].resetFields()
+    },
+    removeDomain(item) {
+      var index = this.temp.domains.indexOf(item)
+      if (index !== -1) {
+        this.temp.domains.splice(index, 1)
+      }
+    },
+    addDomain() {
+      this.temp.domains.push({
+        value: '',
+        key: Date.now()
+      })
+    },
     updateModelYearMonth(location) {
       if (location === 'ListQuery') {
         this.listQuery.year = this.datePickerTime.substring(0, 4)
@@ -247,6 +305,10 @@ export default {
         task_type: 1,
         target_times: '',
         completed_times: '',
+        reward_mechanism: 1,
+        domains: [{
+          value: ''
+        }],
         status: 1
       }
       this.dialogMonthPicker = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString()
