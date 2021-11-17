@@ -101,3 +101,18 @@ export function getOperationLog(query) {
     params: query
   })
 }
+
+export function saveTodoList(id, data) {
+  return request({
+    url: '/api/plan/month_plans/' + id + '/save_todo_list/',
+    method: 'post',
+    data
+  })
+}
+
+export function getTodoList(id) {
+  return request({
+    url: '/api/plan/month_plans/' + id + '/get_todo_list/',
+    method: 'get'
+  })
+}

@@ -75,7 +75,7 @@
 
     <!-- 新增/修改 弹窗 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="padding-bottom: 30px;">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="95px" style="width: 420px; margin-left:50px;">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="105px" style="width: 430px; margin-left:50px;">
         <el-form-item label="月份:" prop="month">
           <el-date-picker v-model="dialogMonthPicker" :clearable="false" type="month" placeholder="选择日期" format="yyyy-MM" value-format="yyyy-MM" style="width:140px;" @change="updateModelYearMonth('Dialog')" />
         </el-form-item>
@@ -94,21 +94,18 @@
           <el-input v-model="temp.completed_times" placeholder="当前已完成次数" />
         </el-form-item>
         <el-form-item label="奖励机制:" prop="reward_mechanism">
-          <el-select v-model="temp.reward_mechanism" class="filter-item" placeholder="请选择">
+          <el-select v-model="temp.reward_mechanism" class="filter-item" placeholder="请选择" @change="chooseRewardMechanism()">
             <el-option v-for="item in rewardMechanismOptions" :key="item.key" :label="item.display_name" :value="item.key" />
           </el-select>
         </el-form-item>
         <el-form-item
-          v-for="(domain, index) in temp.domains"
+          v-for="(domain, index) in temp.multi_stages"
           v-show="temp.reward_mechanism === 2"
           :key="domain.key"
-          :label="'阶段 ' + (index+1) + ' :'"
-          :prop="'domains.' + index + '.value'"
-          :rules="{
-            required: true, message: '阶段性目标次数不能为空', trigger: 'blur'
-          }"
+          :label="'阶段 ' + (index+1) + '('+(domain.complete_num/temp.target_times*100).toFixed(0)+'%):'"
+          :prop="'multi_stages.' + index + '.complete_num'"
         >
-          <el-input v-model="domain.value" :placeholder="'阶段次数'" style="width: 90px;" />
+          <el-input v-model="domain.complete_num" :placeholder="'阶段次数'" style="width: 90px;" />
           <el-select v-model="domain.reward_type" class="filter-item" placeholder="奖项" style="width: 78px; margin:0px 12px;">
             <el-option v-for="item in rewardTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
           </el-select>
@@ -116,6 +113,11 @@
           <el-input v-model="domain.reward_num" placeholder="个数" style="width: 65px; margin: 0px 12px;" />
           <el-button v-if="index != 0" size="mini" icon="el-icon-minus" circle @click.prevent="removeDomain(domain)" />
           <el-button v-if="index === 0" size="mini" icon="el-icon-plus" circle @click="addDomain" />
+        </el-form-item>
+        <el-form-item v-show="temp.reward_mechanism === 1" label="奖品选择:" prop="reward_one">
+          <el-select v-model="temp.reward_one" class="filter-item" placeholder="请选择">
+            <el-option v-for="item in rewardTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态:" prop="task_type">
           <el-select v-model="temp.status" class="filter-item" placeholder="请选择">
@@ -157,6 +159,7 @@ const rewardMechanismOptions = [
 ]
 
 const rewardTypeOptions = [
+  { key: 0, display_name: '无' },
   { key: 1, display_name: 'SP' },
   { key: 2, display_name: 'MP' },
   { key: 3, display_name: 'BP' },
@@ -223,9 +226,13 @@ export default {
         target_times: '',
         completed_times: '',
         reward_mechanism: 1,
-        domains: [{
-          value: ''
+        multi_stages: [{
+          complete_num: '',
+          reward_type: '',
+          reward_num: ''
         }],
+        todo_list: {},
+        reward_one: 0,
         status: 0
       },
       dialogFormVisible: false,
@@ -239,9 +246,32 @@ export default {
         month: [{ required: true, message: '月份必填', trigger: 'change' }],
         task_name: [{ required: true, message: '任务名称必填', trigger: 'blur' }],
         task_type: [{ required: true, message: '任务类型必填', trigger: 'change' }],
-        target_times: [{ required: true, message: '目标次数必填', trigger: 'blur' }],
-        completed_times: [{ required: true, message: '已完成次数必填', trigger: 'blur' }],
+        target_times: [
+          { required: true, message: '目标次数必填', trigger: 'blur' },
+          {
+            validator: function(rule, value, callback) {
+              if (/^[0-9]*$/.test(value) === false) {
+                callback(new Error('请输入正确的数字'))
+              } else {
+                callback()
+              }
+            }, trigger: 'blur'
+          }
+        ],
+        completed_times: [
+          { required: true, message: '已完成次数必填', trigger: 'blur' },
+          {
+            validator: function(rule, value, callback) {
+              if (/^[0-9]*$/.test(value) === false) {
+                callback(new Error('请输入正确的数字'))
+              } else {
+                callback()
+              }
+            }, trigger: 'blur'
+          }
+        ],
         reward_mechanism: [{ required: true, message: '奖励机制必填', trigger: 'blur' }],
+        reward_one: [{ required: true, message: '奖品必填', trigger: 'blur' }],
         status: [{ required: true, message: '状态必填', trigger: 'change' }]
       }
     }
@@ -250,36 +280,27 @@ export default {
     this.fetchData()
   },
   methods: {
-    resetForm(formName) {
-      this.$refs[formName].resetFields()
-    },
-    removeDomain(item) {
-      var index = this.temp.domains.indexOf(item)
-      if (index !== -1) {
-        this.temp.domains.splice(index, 1)
-      }
-    },
-    addDomain() {
-      this.temp.domains.push({
-        value: '',
-        key: Date.now()
-      })
-    },
-    updateModelYearMonth(location) {
-      if (location === 'ListQuery') {
-        this.listQuery.year = this.datePickerTime.substring(0, 4)
-        this.listQuery.month = this.datePickerTime.substring(5)
-        this.fetchData()
-      } else if (location === 'Dialog') {
-        this.temp.year = this.dialogMonthPicker.substring(0, 4)
-        this.temp.month = this.dialogMonthPicker.substring(5)
-      }
-    },
     fetchData() {
       this.listLoading = true
       getMonthPlanList(this.listQuery).then(response => {
         this.list = response.results
         this.total = response.count
+        for (var i = 0; i < response.results.length; i++) {
+          if (this.list[i].multi_stages) {
+            this.list[i].multi_stages = JSON.parse(this.list[i].multi_stages)
+          } else {
+            this.list[i].multi_stages = [{
+              key: Date.now(),
+              complete_num: '',
+              reward_type: '',
+              reward_num: ''
+            }]
+          }
+          if (this.list[i].todo_list) {
+            this.list[i].todo_list = JSON.parse(this.list[i].todo_list)
+            this.list[i].reward_one = this.list[i].todo_list['reward_one']
+          }
+        }
         this.listLoading = false
       })
     },
@@ -306,9 +327,14 @@ export default {
         target_times: '',
         completed_times: '',
         reward_mechanism: 1,
-        domains: [{
-          value: ''
+        multi_stages: [{
+          key: Date.now(),
+          complete_num: '',
+          reward_type: '',
+          reward_num: 1
         }],
+        todo_list: {},
+        reward_one: 0,
         status: 1
       }
       this.dialogMonthPicker = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString()
@@ -324,8 +350,21 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.status = 1
-          createMonthPlan(this.temp).then(() => {
+          var tempData = Object.assign({}, this.temp)
+          if (tempData.reward_mechanism === 1) {
+            tempData.multi_stages = ''
+            tempData.todo_list = {
+              'reward_select': tempData.reward_one,
+              'todo_list_detail': []
+            }
+            tempData.todo_list = JSON.stringify(tempData.todo_list)
+          } else {
+            tempData.todo_list = ''
+            tempData.multi_stages = JSON.stringify(tempData.multi_stages)
+          }
+          console.log(tempData.todo_list)
+          console.log(tempData)
+          createMonthPlan(tempData).then(() => {
             // this.list.push(this.temp)
             this.dialogFormVisible = false
             this.fetchData()
@@ -341,6 +380,9 @@ export default {
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
+      if (this.temp.reward_mechanism === 1 && this.temp.todo_list) {
+        this.temp.reward_one = this.temp.todo_list['reward_select']
+      }
       this.dialogMonthPicker = row.year + '-' + row.month
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
@@ -352,6 +394,20 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
+          if (tempData.reward_mechanism === 1) {
+            tempData.multi_stages = ''
+            if (!tempData.todo_list) {
+              tempData.todo_list = {
+                'reward_select': tempData.reward_one,
+                'todo_list_detail': []
+              }
+            } else {
+              tempData.todo_list['reward_select'] = tempData.reward_one
+            }
+            tempData.todo_list = JSON.stringify(tempData.todo_list)
+          } else {
+            tempData.multi_stages = JSON.stringify(tempData.multi_stages)
+          }
           updateMonthPlan(tempData.id, tempData).then(() => {
             // const index = this.list.findIndex(v => v.id === this.temp.id)
             // this.list.splice(index, 1, this.temp)
@@ -435,6 +491,38 @@ export default {
           duration: 2000
         })
       })
+    },
+    addDomain() {
+      this.temp.multi_stages.push({
+        complete_num: '',
+        reward_type: '',
+        reward_num: 1,
+        key: Date.now()
+      })
+    },
+    removeDomain(item) {
+      var index = this.temp.multi_stages.indexOf(item)
+      if (index !== -1) {
+        this.temp.multi_stages.splice(index, 1)
+      }
+    },
+    chooseRewardMechanism() {
+      if (!this.temp.target_times) {
+        this.temp.reward_mechanism = 1
+        this.$message.error('请先填写任务的<目标次数>！')
+      } else {
+        this.rules.reward_one = []
+      }
+    },
+    updateModelYearMonth(location) {
+      if (location === 'ListQuery') {
+        this.listQuery.year = this.datePickerTime.substring(0, 4)
+        this.listQuery.month = this.datePickerTime.substring(5)
+        this.fetchData()
+      } else if (location === 'Dialog') {
+        this.temp.year = this.dialogMonthPicker.substring(0, 4)
+        this.temp.month = this.dialogMonthPicker.substring(5)
+      }
     }
   }
 }

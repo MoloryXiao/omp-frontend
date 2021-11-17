@@ -3,9 +3,9 @@
     <el-row>
       <el-col :span="24">
         <el-descriptions class="margin-top" title="月任务详情" :column="4" border>
-          <template slot="extra">
+          <!-- <template slot="extra">
             <el-button type="primary" size="small">编辑</el-button>
-          </template>
+          </template> -->
           <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
             <template slot="label">
               <i class="el-icon-user" />
@@ -34,32 +34,27 @@
             </template>
             {{ header_info['target_times'] }}
           </el-descriptions-item>
-          <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
+          <el-descriptions-item
+            v-for="(domain, index) in header_info['multi_stages']"
+            :key="domain.key"
+            :label-style="labelStyle"
+            :content-style="contentStyle"
+          >
             <template slot="label">
               <i class="el-icon-office-building" />
-              阶段1(10%)
+              阶段{{ index+1 }}({{ (domain.complete_num/header_info['target_times']).toFixed(2)*100 }}%)
             </template>
-            1
-          </el-descriptions-item>
-          <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
-            <template slot="label">
-              <i class="el-icon-office-building" />
-              阶段2(50%)
-            </template>
-            5
-          </el-descriptions-item>
-          <el-descriptions-item :label-style="labelStyle" :content-style="contentStyle">
-            <template slot="label">
-              <i class="el-icon-office-building" />
-              阶段3(70%)
-            </template>
-            7
+            {{ domain.complete_num }}
           </el-descriptions-item>
         </el-descriptions>
       </el-col>
     </el-row>
-    <el-row v-if="showOperationLog" style="margin-top: 15px;">
-      <el-col :span="12">
+    <el-row style="margin-top: 25px;">
+      <!-- TODO LIST MODE -->
+      <el-col v-if="header_info['reward_mechanism'] == 1" :span="12">
+        <todo-list :task_id="header_info['id']" />
+      </el-col>
+      <el-col v-if="header_info['reward_mechanism'] == 2 && showOperationLog" :span="12">
         <el-calendar>
           <template
             slot="dateCell"
@@ -72,7 +67,7 @@
           </template>
         </el-calendar>
       </el-col>
-      <el-col :span="10" :offset="1">
+      <el-col v-if="showOperationLog" :span="10" :offset="1">
         <h4>操作日志</h4>
         <el-timeline>
           <el-timeline-item v-for="(record_list, key, index) in opLogsDict" :key="index" :timestamp="key" placement="top">
@@ -90,10 +85,14 @@
 <script>
 import { getMonthPlanDetail, getOperationLog } from '@/api/plan'
 import { dateFormat } from '@/utils'
+import TodoList from '@/components/TodoList'
 
 const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
 
 export default {
+  components: {
+    TodoList
+  },
   data() {
     return {
       labelStyle: {
@@ -120,6 +119,14 @@ export default {
     fetchData(id) {
       getMonthPlanDetail(id).then(response => {
         this.header_info = response
+        if (this.header_info.multi_stages) {
+          this.header_info.multi_stages = JSON.parse(this.header_info.multi_stages)
+        } else {
+          this.header_info.multi_stages = ''
+        }
+        if (this.header_info.todo_list) {
+          this.header_info.todo_list = JSON.parse(this.header_info.todo_list)
+        }
       })
       var query = {
         'object_category': 1,
