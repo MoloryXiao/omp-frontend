@@ -170,7 +170,7 @@ const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
 const statusNameList = ['未完成', '已完成']
 
 export default {
-  name: 'TinymceDemo',
+  name: 'Diary',
   components: { Tinymce, Hotpot },
   filters: {
     statusFilter(status) {

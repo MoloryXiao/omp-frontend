@@ -52,7 +52,7 @@
     <el-row style="margin-top: 25px;">
       <!-- TODO LIST MODE -->
       <el-col v-if="header_info['reward_mechanism'] == 1" :span="12">
-        <todo-list :task_id="header_info['id']" />
+        <todo-list :taskId="header_info['id']" />
       </el-col>
       <el-col v-if="header_info['reward_mechanism'] == 2 && showOperationLog" :span="12">
         <el-calendar>

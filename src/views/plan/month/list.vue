@@ -222,7 +222,7 @@ export default {
         year: '',
         month: '',
         task_name: '',
-        task_type: 1,
+        task_type: '',
         target_times: '',
         completed_times: '',
         reward_mechanism: 1,
@@ -323,7 +323,7 @@ export default {
         year: date.getFullYear().toString(),
         month: (date.getMonth() + 1).toString(),
         task_name: '',
-        task_type: 1,
+        task_type: '',
         target_times: '',
         completed_times: '',
         reward_mechanism: 1,
@@ -380,8 +380,17 @@ export default {
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
-      if (this.temp.reward_mechanism === 1 && this.temp.todo_list) {
-        this.temp.reward_one = this.temp.todo_list['reward_select']
+      if (this.temp.reward_mechanism === 1) {
+        if (this.temp.todo_list) {
+          this.temp.reward_one = this.temp.todo_list['reward_select']
+        } else {
+          this.temp.todo_list = {
+            'reward_select': '',
+            'todo_list_detail': []
+          }
+        }        
+      } else {
+        this.temp.todo_list = ''
       }
       this.dialogMonthPicker = row.year + '-' + row.month
       this.dialogStatus = 'update'
@@ -407,6 +416,7 @@ export default {
             tempData.todo_list = JSON.stringify(tempData.todo_list)
           } else {
             tempData.multi_stages = JSON.stringify(tempData.multi_stages)
+            tempData.todo_list = ''
           }
           updateMonthPlan(tempData.id, tempData).then(() => {
             // const index = this.list.findIndex(v => v.id === this.temp.id)

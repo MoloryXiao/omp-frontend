@@ -68,6 +68,12 @@ export const constantRoutes = [
         meta: { title: '时间日记', icon: 'el-icon-collection' }
       },
       {
+        path: 'summary',
+        name: 'Summary',
+        component: () => import('@/views/summary/index'),
+        meta: { title: '总结回顾', icon: 'el-icon-receiving' }
+      },
+      {
         path: 'prize-list',
         name: 'PrizeList',
         component: () => import('@/views/tree/index'),

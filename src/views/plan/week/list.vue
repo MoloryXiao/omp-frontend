@@ -177,7 +177,7 @@ export default {
       temp: {
         id: undefined,
         task_name: '',
-        task_type: 1,
+        task_type: '',
         start_date: '',
         end_date: '',
         status: 0
@@ -186,8 +186,8 @@ export default {
       deleConfDialogVisible: false,
       dialogStatus: '',
       textMap: {
-        update: '编辑月目标',
-        create: '创建月目标'
+        update: '编辑周目标',
+        create: '创建周目标'
       },
       rules: {
         month: [{ required: true, message: '月份必填', trigger: 'change' }],
@@ -254,7 +254,7 @@ export default {
         month: '',
         week: '',
         task_name: '',
-        task_type: 1,
+        task_type: '',
         target_times: '',
         completed_times: '',
         status: 0
