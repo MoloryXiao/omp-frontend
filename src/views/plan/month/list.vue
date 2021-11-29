@@ -32,7 +32,10 @@
       <el-table-column label="任务项" min-width="150" align="left" header-align="center">
         <template slot-scope="scope">
           <el-tag :type="scope.row.task_type | taskTypeFilter" size="mini" effect="plain">{{ taskTypeNameList[scope.row.task_type] }}</el-tag>
-          <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
+          <el-tooltip effect="dark" placement="top-end">
+            <div slot="content" style="white-space: pre-wrap;">{{ scope.row.prize }}</div>
+            <span>&nbsp;&nbsp;{{ scope.row.task_name }}</span>
+          </el-tooltip>
         </template>
       </el-table-column>
       <el-table-column label="当前/目标" min-width="70" align="center">
@@ -166,6 +169,8 @@ const rewardTypeOptions = [
   { key: 4, display_name: 'LP' }
 ]
 
+const rewardTypeArr = ['无', 'SP', 'MP', 'BP', 'LP']
+
 const taskTypeNameList = ['none', '学习', '工作', '生活', '规划']
 const statusNameList = ['停止', '开启']
 
@@ -286,8 +291,26 @@ export default {
         this.list = response.results
         this.total = response.count
         for (var i = 0; i < response.results.length; i++) {
+          this.list[i]['prize'] = '奖品列表：\n'
           if (this.list[i].multi_stages) {
             this.list[i].multi_stages = JSON.parse(this.list[i].multi_stages)
+            console.log(this.list[i].multi_stages)
+            console.log(this.list[i].multi_stages[0])
+            console.log(this.list[i].multi_stages[0]["reward_num"])
+            // console.log(int(this.list[i].multi_stages[0]["reward_num"]))
+            for (var j = 0; j < this.list[i].multi_stages.length; j++) {
+              let complete_num = this.list[i].multi_stages[j]['complete_num']
+              let reward_num = this.list[i].multi_stages[j]['reward_num']
+              let reward_type = this.list[i].multi_stages[j]['reward_type']
+              let reward_str = ''
+              // 如果奖品类型为无，则不显示奖品个数后缀
+              if (reward_type === 0) {
+                reward_str = rewardTypeArr[reward_type]
+              } else {
+                reward_str = rewardTypeArr[reward_type] + ' x ' + reward_num + '个'
+              }
+              this.list[i]['prize'] += complete_num + '次 ' + reward_str + '\n'
+            }
           } else {
             this.list[i].multi_stages = [{
               key: Date.now(),
@@ -298,7 +321,8 @@ export default {
           }
           if (this.list[i].todo_list) {
             this.list[i].todo_list = JSON.parse(this.list[i].todo_list)
-            this.list[i].reward_one = this.list[i].todo_list['reward_one']
+            this.list[i].reward_one = this.list[i].todo_list['reward_select']
+            this.list[i]['prize'] += rewardTypeArr[this.list[i].todo_list['reward_select']] + ' x 1'
           }
         }
         this.listLoading = false
@@ -388,7 +412,7 @@ export default {
             'reward_select': '',
             'todo_list_detail': []
           }
-        }        
+        }
       } else {
         this.temp.todo_list = ''
       }

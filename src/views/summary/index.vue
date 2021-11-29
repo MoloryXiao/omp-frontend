@@ -1,8 +1,19 @@
 <template>
   <div class="app-container-gray">
+    <el-date-picker
+      v-model="monthDatePicker"
+      :clearable="false"
+      :editable="false"
+      type="month"
+      placeholder="选择日期"
+      format="yyyy 年 MM 月"
+      value-format="yyyy-MM"
+      style="width:150px; margin-bottom: 20px;"
+      @change="updateModelYearMonth()"
+    />
     <el-card id="monthReview">
       <div slot="header" class="clearfix">
-        <span><strong>11月总结回顾</strong></span>
+        <span><strong>{{this.queryLimit['month']}}月总结回顾</strong></span>
         <!-- <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button> -->
         <el-button
           v-show="isEditMonth"
@@ -31,7 +42,7 @@
       </div>
       <div>
         <div v-show="isEditMonth">
-          <tinymce id="monthTinymce" v-model="monthTextarea" class="month-tiny-margin" :height="400" />
+          <tinymce id="monthTinymce" v-model="monthTextareaEdit" class="month-tiny-margin" :height="400" />
         </div>
         <div v-show="!isEditMonth" class="month-review-textArea" v-html="monthTextarea" />
       </div>
@@ -39,7 +50,7 @@
 
     <el-card id="weekReview">
       <div slot="header" class="clearfix">
-        <span><strong>11月各周总结回顾</strong></span>
+        <span><strong>{{this.queryLimit['month']}}月各周总结回顾</strong></span>
         <el-button
           v-show="isEditWeek"
           class="el-card-btn"
@@ -84,6 +95,7 @@
 
 <script>
 import Tinymce from '@/components/Tinymce'
+import { getSummaryReview, saveSummaryData } from '@/api/summary'
 
 const monthInitReview = '1、列举完成的目标，以及对应的奖品<br/><br/>' +
   '2、分析未完成目标原因<br/><br/>' +
@@ -111,6 +123,7 @@ const weekInitReview = '<strong>本周完成事项（思考提效点）：</stro
 export default {
   components: { Tinymce },
   data() {
+    const date = new Date()
     return {
       editableTabsValue: 'Week 1',
       editableTabs: [{
@@ -118,19 +131,62 @@ export default {
         name: 'Week 1',
         content: weekInitReview,
         isEdit: false
-      }, {
-        title: '第 2 周',
-        name: 'Week 2',
-        content: weekInitReview,
-        isEdit: false
       }],
       isEditMonth: false,
       isEditWeek: false,
-      monthTextarea: monthInitReview
+      monthTextarea: monthInitReview,
+      monthTextareaEdit: '',
+      monthDatePicker: date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString(),
+      queryLimit: {
+        page: 1,
+        limit: 1,
+        year: date.getFullYear(),
+        month: date.getMonth() + 1
+      }
     }
   },
-
+  created() {
+    this.fetchData()
+  },
   methods: {
+    resetPageContent() {
+      this.monthTextarea = monthInitReview
+      this.editableTabs = [{
+        title: '第 1 周',
+        name: 'Week 1',
+        content: weekInitReview,
+        isEdit: false
+      }]
+      this.editableTabsValue = 'Week 1'
+      this.isEditMonth = false
+      this.isEditWeek = false
+    },
+    fetchData() {
+      getSummaryReview(this.queryLimit).then(response => {
+        if (response.count != 0) {
+          this.monthTextarea = response.results[0].month_review
+          this.editableTabs = JSON.parse(response.results[0].weeks_review)
+          this.editableTabsValue = 'Week 1'
+          this.$message({
+            message: this.queryLimit['year'] + '-' + this.queryLimit['month'] + ' 回顾记录加载成功',
+            type: 'success',
+            duration: '2000'
+          })
+        } else {
+          this.resetPageContent()
+          this.$message({
+            message: this.queryLimit['year'] + '-' + this.queryLimit['month'] + ' 暂无生效的回顾记录',
+            type: 'info',
+            duration: '2000'
+          })
+        }
+      })
+    },
+    updateModelYearMonth() {
+      this.queryLimit.year = this.monthDatePicker.substring(0, 4)
+      this.queryLimit.month = this.monthDatePicker.substring(5)
+      this.fetchData()
+    },
     leaveTab(activeName, oldActiveName) {
       let leaveFlag = true
       this.editableTabs.forEach((tab, index) => {
@@ -192,6 +248,8 @@ export default {
     cancelEdit(action) {
       if (action === 'month') {
         this.isEditMonth = false
+        // TODO: 取消没有恢复原数据，待修复
+        this.monthTextareaEdit = this.monthTextarea
       } else {
         this.editableTabs.forEach((tab, index) => {
           if (tab.name === this.editableTabsValue) {
@@ -200,10 +258,27 @@ export default {
           }
         })
       }
+    },
+    saveSummary() {
+      const data = {
+        'year': this.queryLimit.year,
+        'month': this.queryLimit.month,
+        'month_review': this.monthTextarea,
+        'weeks_review': JSON.stringify(this.editableTabs)
+      }
+      saveSummaryData(data).then((rsp) => {
+        this.$notify({
+          title: '成功',
+          message: '保存成功',
+          type: 'success',
+          duration: 2000
+        })
+      })
     },
     confirmEdit(action) {
       if (action === 'month') {
         this.isEditMonth = false
+        this.monthTextarea = this.monthTextareaEdit
       } else {
         this.editableTabs.forEach((tab, index) => {
           if (tab.name === this.editableTabsValue) {
@@ -212,14 +287,17 @@ export default {
           }
         })
       }
+      this.saveSummary()
     },
     startEdit(action) {
       if (action === 'month') {
         this.isEditMonth = true
+        this.monthTextareaEdit = Object.assign(this.monthTextarea)
+        console.log(this.monthTextarea)
+        console.log(this.monthTextareaEdit)
       } else {
         this.editableTabs.forEach((tab, index) => {
           if (tab.name === this.editableTabsValue) {
-            console.log(this.editableTabsValue)
             tab.isEdit = true
             this.isEditWeek = true
           }
@@ -240,6 +318,7 @@ export default {
   font-size: 14px;
   font-family: '宋体';
   line-height: 25px;
+  padding: 0px 10px;
 }
 .divider-style {
   margin-top: -10px;
@@ -258,7 +337,8 @@ export default {
 }
 .month-tiny-margin {
   margin-top: 15px;
-  margin-bottom: 40px;;
+  margin-bottom: 40px;
+  
 }
 .week-tiny-margin {
   margin-bottom: 50px;;
