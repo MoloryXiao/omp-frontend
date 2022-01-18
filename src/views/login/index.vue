@@ -74,7 +74,7 @@ export default {
     // }
     return {
       loginForm: {
-        email: 'lette.xiao@yingzt.com',
+        email: 'lette.xiao',
         password: '123123'
       },
       loginRules: {

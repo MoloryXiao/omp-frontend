@@ -112,7 +112,7 @@ export const constantRoutes = [
     component: Layout,
     children: [
       {
-        path: 'https://git.yingzhongtong.com/lette.xiao/ftp-vue-admin',
+        path: 'https://github.com/MoloryXiao/omp-frontend',
         meta: { title: 'Git 代码仓库', icon: 'link' }
       }
     ]

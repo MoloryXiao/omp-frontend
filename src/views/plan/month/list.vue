@@ -294,14 +294,10 @@ export default {
           this.list[i]['prize'] = '奖品列表：\n'
           if (this.list[i].multi_stages) {
             this.list[i].multi_stages = JSON.parse(this.list[i].multi_stages)
-            console.log(this.list[i].multi_stages)
-            console.log(this.list[i].multi_stages[0])
-            console.log(this.list[i].multi_stages[0]["reward_num"])
-            // console.log(int(this.list[i].multi_stages[0]["reward_num"]))
             for (var j = 0; j < this.list[i].multi_stages.length; j++) {
-              let complete_num = this.list[i].multi_stages[j]['complete_num']
-              let reward_num = this.list[i].multi_stages[j]['reward_num']
-              let reward_type = this.list[i].multi_stages[j]['reward_type']
+              var complete_num = this.list[i].multi_stages[j]['complete_num']
+              var reward_num = this.list[i].multi_stages[j]['reward_num']
+              var reward_type = this.list[i].multi_stages[j]['reward_type']
               let reward_str = ''
               // 如果奖品类型为无，则不显示奖品个数后缀
               if (reward_type === 0) {
